@@ -9,21 +9,13 @@ const SocketContext = createContext(null);
 // Ainsi React StrictMode (qui monte/démonte les composants 2x) ne peut PAS le détruire.
 // Chaque onglet du navigateur charge son propre module → chaque onglet a son propre socket.
 
-// 🔹 IMPORTANT 🔹
-// Pour le développement sur PC et téléphone sur le même réseau,
-// il faut utiliser l'IP du PC accessible sur le réseau local.
-// Remplace "10.0.0.40" par l'IP locale réelle de ton PC.
-// "localhost" fonctionne uniquement sur le PC.
-const SOCKET_URLS = [
-    "http://localhost:5000",  // PC
-    "http://10.0.0.40:5000",  // téléphone sur le même Wi-Fi
-];
+// 🔹 PRODUCTION + DEV LOCAL 🔹
+// En production (Vercel), REACT_APP_SERVER_URL pointe vers le backend Render.
+// En local, le fallback utilise localhost ou l'IP réseau pour tests téléphone.
+const SERVER_URL =
+    process.env.REACT_APP_SERVER_URL || "http://localhost:5000";
 
-// 🔹 Pour plus de sécurité, on peut choisir dynamiquement la bonne URL
-// selon la présence d'une variable d'environnement ou un paramètre.
-const DEFAULT_SOCKET_URL = SOCKET_URLS[0]; // utiliser IP réseau pour tests téléphone
-
-const socket = io(DEFAULT_SOCKET_URL, { autoConnect: false });
+const socket = io(SERVER_URL, { autoConnect: false });
 
 // ────────────────
 // PROVIDER REACT

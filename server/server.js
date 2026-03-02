@@ -14,8 +14,9 @@ const server = http.createServer(app);
 // CORS configuré pour PC (localhost) + réseau local (IP du PC)
 const io = new Server(server, {
     cors: {
-        origin: "*",  // accepte toutes les origines
+        origin: process.env.CLIENT_URL,
         methods: ["GET", "POST"],
+        credentials: true,
     },
 });
 
@@ -127,6 +128,5 @@ function getLocalIP() {
 }
 
 // ─── Démarrage serveur ────────────────────
-const PORT = 5000;
-const localIP = getLocalIP();
-server.listen(PORT, () => console.log(`🚀 Serveur sur http://${localIP}:${PORT}`));
+const PORT = process.env.PORT || 5000;
+server.listen(PORT, () => console.log(`🚀 Serveur sur port ${PORT}`));

@@ -27,8 +27,14 @@ function Message({ msg, username }) {
             {/* Contenu du message */}
             <p className="messageText">{msg.message}</p>
 
+            <div className="messageMeta">
+
             {/* Heure d'envoi */}
             <span className="messageTime">{msg.time}</span>
+                {isOwn &&(
+                    <span className="readReceipt">✓✓</span>
+                )}
+        </div>
         </div>
     );
 }

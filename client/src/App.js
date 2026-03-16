@@ -29,7 +29,7 @@ function App() {
                 setConnected={setConnected}
             />
         ) : (
-            <Chat username={username} room={room} />
+            <Chat username={username} room={room} onLeave={() => setConnected(false)} />
         )}
       </div>
   );

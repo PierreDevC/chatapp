@@ -14,7 +14,7 @@ const server = http.createServer(app);
 // CORS configuré pour PC (localhost) + réseau local (IP du PC)
 const io = new Server(server, {
     cors: {
-        origin: process.env.CLIENT_URL,
+        origin: process.env.CLIENT_URL || "http://localhost:3000",
         methods: ["GET", "POST"],
         credentials: true,
     },
@@ -44,6 +44,7 @@ io.on("connection", (socket) => {
     // Envoyer la liste des rooms dès la connexion
     socket.emit("rooms_list", getRoomsList());
 
+
     // ── Rejoindre une room ──────────────────
     socket.on("join_room", ({ username, room }) => {
         if (!rooms[room]) rooms[room] = { users: [] };
@@ -67,6 +68,8 @@ io.on("connection", (socket) => {
 
         io.to(room).emit("room_users", rooms[room].users);
         io.emit("rooms_list", getRoomsList());
+
+        io.emit("activity_log", { username, action: "a rejoint", room, time: now() }); // question 5
     });
 
     // ── Créer une nouvelle room ─────────────
@@ -82,6 +85,31 @@ io.on("connection", (socket) => {
     socket.on("send_message", (data) => {
         console.log(`💬 "${data.author}" → "${data.room}": ${data.message}`);
         io.to(data.room).emit("receive_message", data);
+    });
+
+    socket.on("leave_room", ({ username, room }) => {
+        socket.leave(room); // quitte la room
+        socket.currentRoom = null;
+        socket.currentUsername = null;
+
+        // enlever de la memoire
+        if (rooms[room]) {
+            rooms[room].users = rooms[room].users.filter(u => u.socketId !== socket.id);
+        }
+
+        // notifier membres de la salle
+        io.to(room).emit("receive_message", {
+            author: "Système",
+            message: `${username} a quitté la salle 👋`,
+            time: now(),
+            system: true,
+        });
+
+        // update
+        io.to(room).emit("room_users", rooms[room].users);
+        io.emit("rooms_list", getRoomsList());
+
+        io.emit("activity_log", { username, action: "a quitté", room, time: now() });// question 5
     });
 
     // ── Déconnexion ─────────────────────────
@@ -101,8 +129,12 @@ io.on("connection", (socket) => {
         });
         io.to(room).emit("room_users", rooms[room].users);
         io.emit("rooms_list", getRoomsList());
+
+        io.emit("activity_log", { username, action: "a quitté", room, time: now() });
     });
 });
+
+
 
 // ─── Helpers ───────────────────────────────
 function now() {
